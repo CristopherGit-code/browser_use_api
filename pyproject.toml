@@ -1,0 +1,14 @@
+[project]
+name = "browser-api"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "dotenv>=0.9.9",
+    "envyaml>=1.10.211231",
+    "langchain-openai>=0.3.32",
+    "oci>=2.159.1",
+    "openai>=1.107.0",
+    "python-box>=7.3.2",
+]
