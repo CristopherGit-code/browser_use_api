@@ -3,3 +3,7 @@ oci_client:
   compartiment:  ${COMPARTIMENT}
   endpoint:  ${ENDPOINT}
   config_path:  ${CONFIG_PATH}
+
+credentials:
+  DIDACTIC_USER: ${DIDACTIC_USER}
+  DIDACTIC_PASSWORD: ${DIDACTIC_PASSWORD}
