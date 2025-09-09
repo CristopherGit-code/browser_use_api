@@ -8,6 +8,7 @@ dependencies = [
     "browser-use>=0.7.6",
     "dotenv>=0.9.9",
     "envyaml>=1.10.211231",
+    "gradio>=5.44.1",
     "langchain-openai>=0.3.32",
     "oci>=2.159.1",
     "openai>=1.107.0",
