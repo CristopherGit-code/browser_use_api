@@ -1,4 +1,4 @@
-from util.openai_client import LLM_Open_Client
+from util.oci_openai_client import LLM_Open_Client
 from browser_use import Agent
 from util.langchain.chat import ChatLangchain
 from browser_use import Agent, Browser, BrowserProfile

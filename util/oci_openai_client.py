@@ -1,16 +1,14 @@
-from dotenv import load_dotenv
-load_dotenv()
+import httpx
 from typing import (
     Iterator,
     Mapping,
 )
 from openai import DEFAULT_MAX_RETRIES, NOT_GIVEN, OpenAI, AsyncOpenAI,DefaultHttpxClient, DefaultAsyncHttpxClient,Timeout, NotGiven
-from util.config.config import Settings
-# https://docs.oracle.com/en-us/iaas/Content/API/Concepts/sdk_authentication_methods.htm
-import requests, oci, httpx
-from oci.config import DEFAULT_PROFILE
 
-settings = Settings(r"C:\Users\Cristopher Hdz\Desktop\Test\browser_api\util\config\config.yaml")
+# https://docs.oracle.com/en-us/iaas/Content/API/Concepts/sdk_authentication_methods.htm
+import requests
+import oci
+from oci.config import DEFAULT_LOCATION, DEFAULT_PROFILE
 
 class OciOpenAI(OpenAI):
     """
@@ -112,6 +110,7 @@ class HttpxOCIAuth(httpx.Auth):
 
         yield request
 
+
 class OCISessionAuth(HttpxOCIAuth):
     """
     OCI authentication implementation using session-based authentication.
@@ -122,7 +121,7 @@ class OCISessionAuth(HttpxOCIAuth):
     Attributes:
         signer (oci.auth.signers.SecurityTokenSigner): OCI signer using session token
     """
-    def __init__(self, config_file=settings.oci_client.config_path, profile_name=DEFAULT_PROFILE):
+    def __init__(self, config_file=DEFAULT_LOCATION, profile_name=DEFAULT_PROFILE):
         config = oci.config.from_file(config_file, profile_name)
         token = self._load_token(config)
         private_key = self._load_private_key(config)
@@ -169,7 +168,7 @@ class OCIUserPrincipleAuth(HttpxOCIAuth):
     Attributes:
         signer (oci.signer.Signer): OCI signer configured with API key credentials
     """
-    def __init__(self, config_file=settings.oci_client.config_path, profile_name=DEFAULT_PROFILE):
+    def __init__(self, config_file=DEFAULT_LOCATION, profile_name=DEFAULT_PROFILE):
         config = oci.config.from_file(config_file, profile_name)
         oci.config.validate_config(config)
 
@@ -188,9 +187,9 @@ from langchain_openai.chat_models.base import ChatOpenAI
 from pydantic import Field, model_validator
 from typing_extensions import Self
 
-compartment_id=settings.oci_client.compartiment
-profile=settings.oci_client.configProfile
-endpoint = settings.oci_client.endpoint
+#compartment_id="ocid1.compartment.oc1..aaaaaaaac3cxhzoka75zaaysugzmvhm3ni3keqvikawjxvwpz26mud622owa"
+#profile="API-USER"
+#endpoint = "https://inference.generativeai.us-chicago-1.oci.oraclecloud.com"
 
 class OciOpenAILangChainClient(ChatOpenAI):
     profile: str = Field(
@@ -231,37 +230,36 @@ class OciOpenAILangGraphClient(ChatOpenAI):
         description="OCI profile name to use for authentication"
     )
 
-    region: str = Field(
-        description="OCI region where the model is deployed"
-    )
-
     compartment_id: str = Field(
         description="OCI compartment ID where the model is deployed"
     )
 
-    model_name: str = Field(
-        description="Name of the OCI OpenAI model to use"
+    service_endpoint: str = Field(
+        description="OCI Gen AI service endpoint to use"
     )
-
+    
     def validate_environment(self) -> Self:
         """Initialize OCI clients after validation."""
         if not self.client:
             self.root_client = OciOpenAI(
-                service_endpoint=endpoint,
-                auth=OCIUserPrincipleAuth(profile_name=profile),
-                compartment_id=compartment_id
+                service_endpoint=self.service_endpoint,
+                auth=OCIUserPrincipleAuth(profile_name=self.profile),
+                compartment_id=self.compartment_id
             )
             self.client = self.root_client.chat.completions
 
         if not self.async_client:
             self.root_async_client = AsyncOciOpenAI(
-                service_endpoint=endpoint,
-                auth=OCIUserPrincipleAuth(profile_name=profile),
-                compartment_id=compartment_id
+                service_endpoint=self.service_endpoint,
+                auth=OCIUserPrincipleAuth(profile_name=self.profile),
+                compartment_id=self.compartment_id
             )
             self.async_client = self.root_async_client.chat.completions
 
         return self
+    
+""" CUSTOM ADD-ON for langgraph agents """
+# region Custom lang agent
 
 class LLM_Open_Client:
     _instance = None
@@ -280,24 +278,9 @@ class LLM_Open_Client:
 
     def build_llm_client(self):
         llm = OciOpenAILangGraphClient(
-            profile="",
-            region="us-ashburn-1",
-            compartment_id="",
-            model_name="openai.gpt-4.1"
+            profile="API-USER",
+            compartment_id="ocid1.compartment.oc1..aaaaaaaaxj6fuodcmai6n6z5yyqif6a36ewfmmovn42red37ml3wxlehjmga",
+            model_name="openai.gpt-4.1",
+            service_endpoint="https://inference.generativeai.us-chicago-1.oci.oraclecloud.com"
         )
         return llm
-
-def main():
-    llm = OciOpenAILangGraphClient(
-        profile="",
-        region="us-ashburn-1",
-        compartment_id="",
-        model_name="openai.gpt-4.1"
-    )
-
-    response = llm.invoke("Hello! Tell me some funny jokes")
-
-    print(response)
-
-if __name__ == "__main__":
-    main()
