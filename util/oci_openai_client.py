@@ -260,6 +260,7 @@ class OciOpenAILangGraphClient(ChatOpenAI):
     
 """ CUSTOM ADD-ON for langgraph agents """
 # region Custom lang agent
+import os
 
 class LLM_Open_Client:
     _instance = None
@@ -279,8 +280,8 @@ class LLM_Open_Client:
     def build_llm_client(self):
         llm = OciOpenAILangGraphClient(
             profile="API-USER",
-            compartment_id="ocid1.compartment.oc1..aaaaaaaaxj6fuodcmai6n6z5yyqif6a36ewfmmovn42red37ml3wxlehjmga",
+            compartment_id=os.environ.get("COMPARTIMENT"),
             model_name="openai.gpt-4.1",
-            service_endpoint="https://inference.generativeai.us-chicago-1.oci.oraclecloud.com"
+            service_endpoint=os.environ.get("ENDPOINT")
         )
         return llm
