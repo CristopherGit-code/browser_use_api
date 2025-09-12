@@ -4,9 +4,7 @@ from util.browser.browser_tools import BrowserAgentTools
 
 tool_watcher = BrowserAgentTools()
 
-async def use_browser(query,message_history):
-    user = "example"
-    password = "pass"
+async def use_browser(query,message_history,user,password):
     bwsr_agent = BrowserUseAgent(user,password)
     prompt = f""" You are a browser agent in charge of solving the user request: {query}. 
     There is this context availabe from previous user-agent interaction and conversations: {message_history}. 
@@ -22,33 +20,33 @@ async def use_browser(query,message_history):
 
 with gr.Blocks() as browser_app:
     gr.Markdown("""<h1 align="center"> Browser app </h1>""")
+    user = gr.Textbox(label="Web User",render=False)
+    password = gr.Textbox(label="Web Password",render=False)
 
-    with gr.Tab("Browser agent"):
-        gr.ChatInterface(
-            fn=use_browser, 
-            chatbot=gr.Chatbot(height=500, placeholder='Browser chat' ,type='messages',render_markdown=True),
-            type="messages",
-        )
+    gr.ChatInterface(
+        fn=use_browser, 
+        chatbot=gr.Chatbot(height=500, placeholder='Browser chat' ,type='messages',render_markdown=True),
+        type="messages",
+        additional_inputs=[
+            user,
+            password
+        ]
+    )
 
-        asking_help = gr.Textbox(interactive=False,label="AI is requesting help with this:")
-        user_response = gr.Textbox(placeholder="The response to the agent question is...",label="Type your response:")
+    asking_help = gr.Textbox(interactive=False,label="AI is requesting help with this:")
+    user_response = gr.Textbox(placeholder="The response to the agent question is...",label="Type your response:")
 
-        gr.Timer(value=0.5).tick(
-            fn=tool_watcher.update_question,
-            inputs=[],
-            outputs=[asking_help]
-        )
+    gr.Timer(value=0.5).tick(
+        fn=tool_watcher.update_question,
+        inputs=[],
+        outputs=[asking_help]
+    )
 
-        user_response.submit(
-            tool_watcher.update_human_response,
-            inputs=[user_response],
-            outputs=[user_response,asking_help]
-        )
-
-    with gr.Tab("Secret keys"):
-        user = gr.Textbox(label="Site user")
-        password = gr.Textbox(label="Site password")
-        system_instructions = gr.Textbox(label="System instructions")
+    user_response.submit(
+        tool_watcher.update_human_response,
+        inputs=[user_response],
+        outputs=[user_response,asking_help]
+    )
 
 if __name__=='__main__':
     browser_app.launch(show_api=False)

@@ -12,9 +12,9 @@ class BrowserUseAgent:
         self._settings = Settings(r"C:\Users\Cristopher Hdz\Desktop\Test\browser_api\util\config\config.yaml")
         self._browser = Browser(
             headless=False,
-            window_size={'width':600,'height':300},
+            window_size={'width':800,'height':500},
             # allowed_domains=['*google.com'],
-            keep_alive=True
+            # keep_alive=True
         )
         self._browser_profile = BrowserProfile(
             allowed_domains=['*google.com'],
